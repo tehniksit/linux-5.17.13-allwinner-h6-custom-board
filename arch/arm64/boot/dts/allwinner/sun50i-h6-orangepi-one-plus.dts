@@ -2,7 +2,7 @@
 // Copyright (C) 2018 Amarula Solutions
 // Author: Jagan Teki <jagan@amarulasolutions.com>
 
-#include "sun50i-h6-orangepi.dtsi"
+#include "sun50i-h6-orangepi_custom.dtsi"
 
 / {
 	model = "OrangePi One Plus";
