@@ -546,7 +546,7 @@ static int panel_simple_probe(struct device *dev, const struct panel_desc *desc)
 	int connector_type;
 	u32 bus_flags;
 	int err;
-
+	printk( " -------- Inside panel_simple_probe()\n");
 	panel = devm_kzalloc(dev, sizeof(*panel), GFP_KERNEL);
 	if (!panel)
 		return -ENOMEM;
@@ -625,6 +625,8 @@ static int panel_simple_probe(struct device *dev, const struct panel_desc *desc)
 			dev_warn(dev, "Expected bpc in {6,8} but got: %u\n", desc->bpc);
 		break;
 	case DRM_MODE_CONNECTOR_DPI:
+                dev_warn(dev, "Connector type DPI\n");
+                printk("Connector type DPI\n");
 		bus_flags = DRM_BUS_FLAG_DE_LOW |
 			    DRM_BUS_FLAG_DE_HIGH |
 			    DRM_BUS_FLAG_PIXDATA_SAMPLE_POSEDGE |
@@ -648,6 +650,11 @@ static int panel_simple_probe(struct device *dev, const struct panel_desc *desc)
 		break;
 	}
 
+	dev_warn(dev, "-----------------------------\n");
+	dev_warn(dev, "-----------------------------\n\n");
+	dev_warn(dev, "Inside panel_simple_probe\n");
+	dev_warn(dev, "-----------------------------\n\n");
+	dev_warn(dev, "-----------------------------\n");
 	dev_set_drvdata(dev, panel);
 
 	/*
@@ -661,13 +668,14 @@ static int panel_simple_probe(struct device *dev, const struct panel_desc *desc)
 	pm_runtime_use_autosuspend(dev);
 
 	drm_panel_init(&panel->base, dev, &panel_simple_funcs, connector_type);
-
+        dev_warn(dev, "----------drm_panel_init()-------\n");
 	err = drm_panel_of_backlight(&panel->base);
-	if (err)
+	if (err) {
+                dev_warn(dev, "----------drm_panel_of_backlight() Error-------\n");
 		goto disable_pm_runtime;
-
+        }
 	drm_panel_add(&panel->base);
-
+        dev_warn(dev, "----------END----------------\n");
 	return 0;
 
 disable_pm_runtime:
@@ -3014,6 +3022,68 @@ static const struct panel_desc rocktech_rk070er9427 = {
 	.bus_format = MEDIA_BUS_FMT_RGB666_1X18,
 };
 
+static const struct display_timing innolux_ej080na05_timing = {
+        .pixelclock = { 40000000, 40000000, 30000000 },
+        .hactive = { 800, 800, 800 },
+        .hfront_porch = { 16, 210, 354 },
+        .hback_porch = { 46, 46, 46 },
+        .hsync_len = { 1, 1, 1 },
+        .vactive = { 600, 600, 600 },
+        .vfront_porch = { 1, 12, 77 },
+        .vback_porch = { 23, 23, 23 },
+        .vsync_len = { 1, 1, 1 },
+        .flags = DISPLAY_FLAGS_DE_HIGH,
+};
+
+static const struct panel_desc innolux_ej080na05 = {
+        .timings = &innolux_ej080na05_timing,
+        .num_timings = 1,
+        .bpc = 6,
+        .size = {
+                .width = 151,
+                .height = 91,
+        },
+/*
+	.delay = {
+		.prepare = 41,
+		.enable = 50,
+		.unprepare = 41,
+		.disable = 50,
+	},
+*/
+        .bus_format = MEDIA_BUS_FMT_RGB666_1X18,
+	.bus_flags = DRM_BUS_FLAG_DE_HIGH | DRM_BUS_FLAG_PIXDATA_DRIVE_NEGEDGE,
+        .connector_type = DRM_MODE_CONNECTOR_DPI,
+};
+
+/*
+static const struct drm_display_mode innolux_ej080na05_timing = {
+        .clock = 40000,
+        .hdisplay = 800,
+        .hsync_start = 800 + 210,
+        .hsync_end = 800 + 210 + 2,
+        .htotal = 800 + 210 + 2 + 44,
+        .vdisplay = 480,
+        .vsync_start = 480 + 22,
+        .vsync_end = 480 + 22 + 2,
+        .vtotal = 480 + 22 + 2 + 21,
+        .flags = DRM_MODE_FLAG_NHSYNC | DRM_MODE_FLAG_NVSYNC,
+};
+
+static const struct panel_desc innolux_ej080na05 = {
+        .modes = &innolux_ej080na05_timing,
+        .num_modes = 1,
+        .bpc = 6,
+        .size = {
+                .width = 151,
+                .height = 91,
+        },
+
+        .bus_format = MEDIA_BUS_FMT_RGB666_1X18,
+	.bus_flags = DRM_BUS_FLAG_DE_HIGH | DRM_BUS_FLAG_PIXDATA_DRIVE_NEGEDGE,
+        .connector_type = DRM_MODE_CONNECTOR_DPI,
+};
+*/
 static const struct drm_display_mode rocktech_rk101ii01d_ct_mode = {
 	.clock = 71100,
 	.hdisplay = 1280,
@@ -3813,6 +3883,9 @@ static const struct of_device_id platform_of_match[] = {
 		.compatible = "innolux,at070tn92",
 		.data = &innolux_at070tn92,
 	}, {
+                .compatible = "innolux,ej080na05",
+                .data = &innolux_ej080na05,
+        }, {
 		.compatible = "innolux,g070y2-l01",
 		.data = &innolux_g070y2_l01,
 	}, {

@@ -61,7 +61,7 @@ static int sun4i_drv_bind(struct device *dev)
 	struct drm_device *drm;
 	struct sun4i_drv *drv;
 	int ret;
-
+        printk ("--Inside sun4i_drv_bind()\n");
 	drm = drm_dev_alloc(&sun4i_drv_driver, dev);
 	if (IS_ERR(drm))
 		return PTR_ERR(drm);
@@ -71,7 +71,7 @@ static int sun4i_drv_bind(struct device *dev)
 		ret = -ENOMEM;
 		goto free_drm;
 	}
-
+	printk ("--1--)\n");
 	dev_set_drvdata(dev, drm);
 	drm->dev_private = drv;
 	INIT_LIST_HEAD(&drv->frontend_list);
@@ -96,12 +96,13 @@ static int sun4i_drv_bind(struct device *dev)
 	ret = drm_vblank_init(drm, drm->mode_config.num_crtc);
 	if (ret)
 		goto cleanup_mode_config;
-
+          printk ("--2--)\n");
 	/* Remove early framebuffers (ie. simplefb) */
 	ret = drm_aperture_remove_framebuffers(false, &sun4i_drv_driver);
 	if (ret)
 		goto cleanup_mode_config;
 
+        printk ("-- calling sun4i_framebuffer_init()\n");
 	sun4i_framebuffer_init(drm);
 
 	/* Enable connectors polling */
@@ -112,12 +113,13 @@ static int sun4i_drv_bind(struct device *dev)
 		goto finish_poll;
 
 	drm_fbdev_generic_setup(drm, 32);
-
+        printk ("----sun4i_drv_bind() Ok!--\n");
 	return 0;
 
 finish_poll:
 	drm_kms_helper_poll_fini(drm);
 cleanup_mode_config:
+         printk ("--DRM cleanup..--)\n");
 	drm_mode_config_cleanup(drm);
 	of_reserved_mem_device_release(dev);
 free_drm:
@@ -299,7 +301,7 @@ static int sun4i_drv_add_endpoints(struct device *dev,
 				   struct device_node *node)
 {
 	int count = 0;
-
+        printk("--Inside sun4i_drv_add_endpoints()\n");
 	/*
 	 * The frontend has been disabled in some of our old device
 	 * trees. If we find a node that is the frontend and is
@@ -338,6 +340,8 @@ static int sun4i_drv_add_endpoints(struct device *dev,
 
 	/* TCON TOP has second and third output */
 	if (sun4i_drv_node_is_tcon_top(node)) {
+
+                printk("-- sun4i_drv_node_is_tcon_top(node) = true\n");
 		sun4i_drv_traverse_endpoints(list, node, 3);
 		sun4i_drv_traverse_endpoints(list, node, 5);
 	}
@@ -372,7 +376,8 @@ static int sun4i_drv_probe(struct platform_device *pdev)
 	struct device_node *np = pdev->dev.of_node, *endpoint;
 	struct endpoint_list list;
 	int i, ret, count = 0;
-
+        
+        printk("--Inside sun4i_drv_probe()\n");
 	INIT_KFIFO(list.fifo);
 
 	for (i = 0;; i++) {
@@ -396,7 +401,7 @@ static int sun4i_drv_probe(struct platform_device *pdev)
 
 		count += ret;
 	}
-
+        printk("--1-- count:%d\n", count);
 	if (count)
 		return component_master_add_with_match(&pdev->dev,
 						       &sun4i_drv_master_ops,

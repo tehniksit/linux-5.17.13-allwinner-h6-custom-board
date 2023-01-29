@@ -168,19 +168,19 @@ int sun4i_dclk_create(struct device *dev, struct sun4i_tcon *tcon)
 	struct clk_init_data init;
 	struct sun4i_dclk *dclk;
 	int ret;
-
+	printk(" -- Inside sun4i_dclk_create\n");
 	parent_name = __clk_get_name(tcon->sclk0);
 	ret = of_property_read_string_index(dev->of_node,
 					    "clock-output-names", 0,
 					    &clk_name);
 	if (ret)
 		return ret;
-
+         printk(" -- 1--\n");
 	dclk = devm_kzalloc(dev, sizeof(*dclk), GFP_KERNEL);
 	if (!dclk)
 		return -ENOMEM;
 	dclk->tcon = tcon;
-
+        printk(" -- 2--\n");
 	init.name = clk_name;
 	init.ops = &sun4i_dclk_ops;
 	init.parent_names = &parent_name;
@@ -193,7 +193,7 @@ int sun4i_dclk_create(struct device *dev, struct sun4i_tcon *tcon)
 	tcon->dclk = clk_register(dev, &dclk->hw);
 	if (IS_ERR(tcon->dclk))
 		return PTR_ERR(tcon->dclk);
-
+        printk(" -- 3--\n");
 	return 0;
 }
 EXPORT_SYMBOL(sun4i_dclk_create);

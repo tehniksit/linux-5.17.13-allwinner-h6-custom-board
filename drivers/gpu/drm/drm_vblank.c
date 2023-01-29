@@ -524,7 +524,7 @@ int drm_vblank_init(struct drm_device *dev, unsigned int num_crtcs)
 {
 	int ret;
 	unsigned int i;
-
+        printk(" -- Inside drm_vblank_init\n");
 	spin_lock_init(&dev->vbl_lock);
 	spin_lock_init(&dev->vblank_time_lock);
 
@@ -552,7 +552,7 @@ int drm_vblank_init(struct drm_device *dev, unsigned int num_crtcs)
 		if (ret)
 			return ret;
 	}
-
+        printk(" -- Inside drm_vblank_init Success\n");
 	return 0;
 }
 EXPORT_SYMBOL(drm_vblank_init);
@@ -1101,17 +1101,21 @@ EXPORT_SYMBOL(drm_crtc_send_vblank_event);
 
 static int __enable_vblank(struct drm_device *dev, unsigned int pipe)
 {
+        printk(" -- Inside __enable_vblank\n");
 	if (drm_core_check_feature(dev, DRIVER_MODESET)) {
 		struct drm_crtc *crtc = drm_crtc_from_index(dev, pipe);
 
 		if (drm_WARN_ON(dev, !crtc))
 			return 0;
 
-		if (crtc->funcs->enable_vblank)
+		if (crtc->funcs->enable_vblank) {
+                        printk(" -- __enable_vblank crtc->funcs->enable_vblank\n");
 			return crtc->funcs->enable_vblank(crtc);
+                }
 	}
 #ifdef CONFIG_DRM_LEGACY
 	else if (dev->driver->enable_vblank) {
+                printk(" -- __enable_vblank CONFIG_DRM_LEGACY\n driver->enable_vblank\n");
 		return dev->driver->enable_vblank(dev, pipe);
 	}
 #endif
@@ -1123,7 +1127,7 @@ static int drm_vblank_enable(struct drm_device *dev, unsigned int pipe)
 {
 	struct drm_vblank_crtc *vblank = &dev->vblank[pipe];
 	int ret = 0;
-
+        printk(" -- Inside drm_vblank_enable\n");
 	assert_spin_locked(&dev->vbl_lock);
 
 	spin_lock(&dev->vblank_time_lock);
@@ -1444,7 +1448,7 @@ void drm_crtc_vblank_on(struct drm_crtc *crtc)
 	struct drm_device *dev = crtc->dev;
 	unsigned int pipe = drm_crtc_index(crtc);
 	struct drm_vblank_crtc *vblank = &dev->vblank[pipe];
-
+        printk(" -- Inside drm_crtc_vblank_on\n");
 	if (drm_WARN_ON(dev, pipe >= dev->num_crtcs))
 		return;
 

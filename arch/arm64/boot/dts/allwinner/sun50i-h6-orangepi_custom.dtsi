@@ -4,8 +4,7 @@
 
 /dts-v1/;
 
-//#include "sun50i-h6_custom.dtsi"
-#include "sun50i-h6.dtsi"
+#include "sun50i-h6_custom.dtsi"
 
 #include <dt-bindings/gpio/gpio.h>
 
@@ -29,7 +28,7 @@
 
 		heartbeat {
 			label = "my_board:green:heartbeat";
-			gpios = <&r_pio 0 2 GPIO_ACTIVE_LOW>; /* PL2 */
+			/* gpios = <&r_pio 0 2 GPIO_ACTIVE_LOW>;  PL2 */
 		};
 
 	};
@@ -84,7 +83,7 @@
 
                 port {
                     panel_in_rgb: endpoint {
-                    	    //remote-endpoint = <&panel_out_rgb>;
+                    remote-endpoint = <&panel_out_rgb>;
                 };
             };
         };
@@ -93,7 +92,7 @@
 &de {
 	status = "okay";
 };
-/*
+
 &tcon_lcd {
         pinctrl-names = "default";
         pinctrl-0 = <&lcd_rgb666_pins>;
@@ -107,7 +106,7 @@
                 allwinner,tcon-channel = <0>;
         };
 };
-*/
+
 &ehci0 {
 	status = "okay";
 };

@@ -3062,7 +3062,7 @@ static int _regmap_update_bits(struct regmap *map, unsigned int reg,
 {
 	int ret;
 	unsigned int tmp, orig;
-
+         //printk("-- Inside _regmap_update_bits\n");
 	if (change)
 		*change = false;
 
@@ -3080,11 +3080,14 @@ static int _regmap_update_bits(struct regmap *map, unsigned int reg,
 
 		if (force_write || (tmp != orig)) {
 			ret = _regmap_write(map, reg, tmp);
+                        //printk(" _regmap_write: reg:%x val=%x\n", reg, tmp);
 			if (ret == 0 && change)
 				*change = true;
+                        //ret = _regmap_read(map, reg, &orig);
+                        //printk(" _regmap_read: reg:%x ret:%d val=%x\n", reg, ret, orig);
 		}
 	}
-
+        //printk(" _regmap_update_bits: reg=%x ret=%d orig=%x\n", reg,  ret, orig);
 	return ret;
 }
 

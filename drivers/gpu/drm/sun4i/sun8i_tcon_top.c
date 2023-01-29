@@ -35,12 +35,12 @@ int sun8i_tcon_top_set_hdmi_src(struct device *dev, int tcon)
 		dev_err(dev, "Device is not TCON TOP!\n");
 		return -EINVAL;
 	}
-
+/*
 	if (tcon < 2 || tcon > 3) {
 		dev_err(dev, "TCON index must be 2 or 3!\n");
 		return -EINVAL;
 	}
-
+*/
 	spin_lock_irqsave(&tcon_top->reg_lock, flags);
 
 	val = readl(tcon_top->regs + TCON_TOP_GATE_SRC_REG);
@@ -114,7 +114,7 @@ static struct clk_hw *sun8i_tcon_top_register_gate(struct device *dev,
 					    &clk_name);
 	if (ret)
 		return ERR_PTR(ret);
-
+        printk("-- clk_hw_register_gate()\n");
 	return clk_hw_register_gate(dev, clk_name, parent_name,
 				    CLK_SET_RATE_PARENT,
 				    regs + TCON_TOP_GATE_SRC_REG,
@@ -130,13 +130,14 @@ static int sun8i_tcon_top_bind(struct device *dev, struct device *master,
 	const struct sun8i_tcon_top_quirks *quirks;
 	void __iomem *regs;
 	int ret, i;
-
+        dev_err(dev, "--Inside sun8i_tcon_top_bind()\n");
+        printk("--Inside sun8i_tcon_top_bind()\n");
 	quirks = of_device_get_match_data(&pdev->dev);
 
 	tcon_top = devm_kzalloc(dev, sizeof(*tcon_top), GFP_KERNEL);
 	if (!tcon_top)
 		return -ENOMEM;
-
+        printk("--1--\n");
 	clk_data = devm_kzalloc(dev, struct_size(clk_data, hws, CLK_NUM),
 				GFP_KERNEL);
 	if (!clk_data)
@@ -144,36 +145,36 @@ static int sun8i_tcon_top_bind(struct device *dev, struct device *master,
 	tcon_top->clk_data = clk_data;
 
 	spin_lock_init(&tcon_top->reg_lock);
-
+        printk("--2--\n");
 	tcon_top->rst = devm_reset_control_get(dev, NULL);
 	if (IS_ERR(tcon_top->rst)) {
 		dev_err(dev, "Couldn't get our reset line\n");
 		return PTR_ERR(tcon_top->rst);
 	}
-
+        printk("--3--\n");
 	tcon_top->bus = devm_clk_get(dev, "bus");
 	if (IS_ERR(tcon_top->bus)) {
 		dev_err(dev, "Couldn't get the bus clock\n");
 		return PTR_ERR(tcon_top->bus);
 	}
-
+        printk("--4--\n");
 	regs = devm_platform_ioremap_resource(pdev, 0);
 	tcon_top->regs = regs;
 	if (IS_ERR(regs))
 		return PTR_ERR(regs);
-
+        printk("--5--\n");
 	ret = reset_control_deassert(tcon_top->rst);
 	if (ret) {
 		dev_err(dev, "Could not deassert ctrl reset control\n");
 		return ret;
 	}
-
+        printk("--6--\n");
 	ret = clk_prepare_enable(tcon_top->bus);
 	if (ret) {
 		dev_err(dev, "Could not enable bus clock\n");
 		goto err_assert_reset;
 	}
-
+        printk("--7--\n");
 	/*
 	 * At least on H6, some registers have some bits set by default
 	 * which may cause issues. Clear them here.
@@ -189,10 +190,10 @@ static int sun8i_tcon_top_bind(struct device *dev, struct device *master,
 	 * if TVE is active on each TCON TV. If it is, mux should be switched
 	 * to TVE clock parent.
 	 */
-	clk_data->hws[CLK_TCON_TOP_TV0] =
-		sun8i_tcon_top_register_gate(dev, "tcon-tv0", regs,
+	clk_data->hws[CLK_TCON_TOP_LCD0] =
+		sun8i_tcon_top_register_gate(dev, "tcon-lcd0", regs,
 					     &tcon_top->reg_lock,
-					     TCON_TOP_TCON_TV0_GATE, 0);
+					     TCON_TOP_TCON_LCD0_GATE, 0);
 
 	if (quirks->has_tcon_tv1)
 		clk_data->hws[CLK_TCON_TOP_TV1] =
@@ -211,7 +212,7 @@ static int sun8i_tcon_top_bind(struct device *dev, struct device *master,
 			ret = PTR_ERR(clk_data->hws[i]);
 			goto err_unregister_gates;
 		}
-
+        printk("--8--\n");
 	clk_data->num = CLK_NUM;
 
 	ret = of_clk_add_hw_provider(dev->of_node, of_clk_hw_onecell_get,
@@ -220,7 +221,7 @@ static int sun8i_tcon_top_bind(struct device *dev, struct device *master,
 		goto err_unregister_gates;
 
 	dev_set_drvdata(dev, tcon_top);
-
+        printk("--9--\n");
 	return 0;
 
 err_unregister_gates:
@@ -257,6 +258,7 @@ static const struct component_ops sun8i_tcon_top_ops = {
 
 static int sun8i_tcon_top_probe(struct platform_device *pdev)
 {
+        printk("--Inside sun8i_tcon_top_probe()\n");
 	return component_add(&pdev->dev, &sun8i_tcon_top_ops);
 }
 

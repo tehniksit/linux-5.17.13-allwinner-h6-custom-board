@@ -84,7 +84,7 @@ static void sun4i_tcon_channel_set_status(struct sun4i_tcon *tcon, int channel,
 					  bool enabled)
 {
 	struct clk *clk;
-
+        printk(" -- Inside sun4i_tcon_channel_set_status\n");
 	switch (channel) {
 	case 0:
 		WARN_ON(!tcon->quirks->has_channel_0);
@@ -106,6 +106,7 @@ static void sun4i_tcon_channel_set_status(struct sun4i_tcon *tcon, int channel,
 	}
 
 	if (enabled) {
+                printk(" -- Inside sun4i_tcon_channel_set_status ENABLED\n");
 		clk_prepare_enable(clk);
 		clk_rate_exclusive_get(clk);
 	} else {
@@ -191,7 +192,7 @@ void sun4i_tcon_set_status(struct sun4i_tcon *tcon,
 {
 	bool is_lvds = false;
 	int channel;
-
+        printk(" -- Inside sun4i_tcon_set_status\n");
 	switch (encoder->encoder_type) {
 	case DRM_MODE_ENCODER_LVDS:
 		is_lvds = true;
@@ -216,10 +217,13 @@ void sun4i_tcon_set_status(struct sun4i_tcon *tcon,
 			   SUN4I_TCON_GCTL_TCON_ENABLE,
 			   enabled ? SUN4I_TCON_GCTL_TCON_ENABLE : 0);
 
-	if (is_lvds && enabled)
+	if (is_lvds && enabled) {
 		sun4i_tcon_lvds_set_status(tcon, encoder, true);
+                
+        }
 
 	sun4i_tcon_channel_set_status(tcon, channel, enabled);
+        printk(" -- sun4i_tcon_set_status Ok\n");
 }
 
 void sun4i_tcon_enable_vblank(struct sun4i_tcon *tcon, bool enable)
@@ -234,7 +238,7 @@ void sun4i_tcon_enable_vblank(struct sun4i_tcon *tcon, bool enable)
 
 	if (enable)
 		val = mask;
-
+        printk(" sun4i_tcon_enable_vblank MASK:%x val:%x\n", mask, val);
 	regmap_update_bits(tcon->regs, SUN4I_TCON_GINT0_REG, mask, val);
 }
 EXPORT_SYMBOL(sun4i_tcon_enable_vblank);
@@ -293,6 +297,7 @@ static int sun4i_tcon_get_clk_delay(const struct drm_display_mode *mode,
 static void sun4i_tcon0_mode_set_common(struct sun4i_tcon *tcon,
 					const struct drm_display_mode *mode)
 {
+        printk(" -- Inside sun4i_tcon0_mode_set_common\n");
 	/* Configure the dot clock */
 	clk_set_rate(tcon->dclk, mode->crtc_clock * 1000);
 
@@ -511,7 +516,7 @@ static void sun4i_tcon0_mode_set_rgb(struct sun4i_tcon *tcon,
 	u32 val = 0;
 
 	WARN_ON(!tcon->quirks->has_channel_0);
-
+printk("-- Inside sun4i_tcon0_mode_set_rgb()\n");
 	tcon->dclk_min_div = tcon->quirks->dclk_min_div;
 	tcon->dclk_max_div = 127;
 	sun4i_tcon0_mode_set_common(tcon, mode);
@@ -583,7 +588,7 @@ static void sun4i_tcon0_mode_set_rgb(struct sun4i_tcon *tcon,
 	regmap_update_bits(tcon->regs, SUN4I_TCON_GCTL_REG,
 			   SUN4I_TCON_GCTL_IOMAP_MASK,
 			   SUN4I_TCON_GCTL_IOMAP_TCON0);
-
+        printk(" -- Enable output pins\n");
 	/* Enable the output on the pins */
 	regmap_write(tcon->regs, SUN4I_TCON0_IO_TRI_REG, 0);
 }
@@ -594,7 +599,7 @@ static void sun4i_tcon1_mode_set(struct sun4i_tcon *tcon,
 	unsigned int bp, hsync, vsync, vtotal;
 	u8 clk_delay;
 	u32 val;
-
+        printk(" -- Inside sun4i_tcon1_mode_set()\n");
 	WARN_ON(!tcon->quirks->has_channel_1);
 
 	/* Configure the dot clock */
@@ -700,6 +705,7 @@ static void sun4i_tcon1_mode_set(struct sun4i_tcon *tcon,
 	regmap_update_bits(tcon->regs, SUN4I_TCON_GCTL_REG,
 			   SUN4I_TCON_GCTL_IOMAP_MASK,
 			   SUN4I_TCON_GCTL_IOMAP_TCON1);
+
 }
 
 void sun4i_tcon_mode_set(struct sun4i_tcon *tcon,
@@ -759,9 +765,11 @@ static irqreturn_t sun4i_tcon_handler(int irq, void *private)
 		return IRQ_NONE;
 
 	drm_crtc_handle_vblank(&scrtc->crtc);
+
 	sun4i_tcon_finish_page_flip(drm, scrtc);
 
 	/* Acknowledge the interrupt */
+
 	regmap_update_bits(tcon->regs, SUN4I_TCON_GINT0_REG,
 			   SUN4I_TCON_GINT0_VBLANK_INT(0) |
 			   SUN4I_TCON_GINT0_VBLANK_INT(1) |
@@ -792,7 +800,7 @@ static int sun4i_tcon_init_clocks(struct device *dev,
 		}
 	}
 	clk_prepare_enable(tcon->sclk0);
-
+        printk(" -- Inside sun4i_tcon_init_clocks - clk_prepare_enable() \"tcon-ch0\"\n");
 	if (tcon->quirks->has_channel_1) {
 		tcon->sclk1 = devm_clk_get(dev, "tcon-ch1");
 		if (IS_ERR(tcon->sclk1)) {
@@ -815,7 +823,7 @@ static int sun4i_tcon_init_irq(struct device *dev,
 {
 	struct platform_device *pdev = to_platform_device(dev);
 	int irq, ret;
-
+    printk(" -- sun4i_tcon_init_irq()\n");
 	irq = platform_get_irq(pdev, 0);
 	if (irq < 0)
 		return irq;
@@ -1119,6 +1127,12 @@ static int sun4i_tcon_bind(struct device *dev, struct device *master,
 	bool has_lvds_rst, has_lvds_alt, can_lvds;
 	int ret;
 
+	dev_warn(dev, "-----------------------------\n");
+        dev_warn(dev, "-----------------------------\n\n");
+        dev_warn(dev, "Inside sun4i_tcon_bind\n");
+        dev_warn(dev, "-----------------------------\n\n");
+        dev_warn(dev, "-----------------------------\n");
+
 	engine = sun4i_tcon_find_engine(drv, dev->of_node);
 	if (IS_ERR(engine)) {
 		dev_err(dev, "Couldn't find matching engine\n");
@@ -1226,6 +1240,7 @@ static int sun4i_tcon_bind(struct device *dev, struct device *master,
 	}
 
 	if (tcon->quirks->has_channel_0) {
+                printk(" ----- !sun4i_dclk_create!\n");
 		ret = sun4i_dclk_create(dev, tcon);
 		if (ret) {
 			dev_err(dev, "Couldn't create our TCON dot clock\n");
@@ -1290,6 +1305,7 @@ static int sun4i_tcon_bind(struct device *dev, struct device *master,
 	return 0;
 
 err_free_dotclock:
+        printk(" -- err_free_dotclock:\n");
 	if (tcon->quirks->has_channel_0)
 		sun4i_dclk_free(tcon);
 err_free_clocks:
@@ -1305,8 +1321,10 @@ static void sun4i_tcon_unbind(struct device *dev, struct device *master,
 	struct sun4i_tcon *tcon = dev_get_drvdata(dev);
 
 	list_del(&tcon->list);
-	if (tcon->quirks->has_channel_0)
+	if (tcon->quirks->has_channel_0) {
+                printk(" -- !sun4i_dclk_free!!\n");
 		sun4i_dclk_free(tcon);
+        }
 	sun4i_tcon_free_clocks(tcon);
 }
 
@@ -1323,15 +1341,22 @@ static int sun4i_tcon_probe(struct platform_device *pdev)
 	struct drm_panel *panel;
 	int ret;
 
+	printk("-----------------------\n");
+	printk("Inside sun4i_tcon_probe\n");
+	printk("-----------------------\n");
 	quirks = of_device_get_match_data(&pdev->dev);
 
 	/* panels and bridges are present only on TCONs with channel 0 */
 	if (quirks->has_channel_0) {
+		printk("-- has channel 0: \n");
 		ret = drm_of_find_panel_or_bridge(node, 1, 0, &panel, &bridge);
-		if (ret == -EPROBE_DEFER)
+		if (ret == -EPROBE_DEFER) {
+			printk("Error!\n");
 			return ret;
+		}
 	}
 
+        printk("---sun4i_tcon_probe end\n");
 	return component_add(&pdev->dev, &sun4i_tcon_ops);
 }
 
@@ -1416,7 +1441,7 @@ static int sun8i_r40_tcon_tv_set_mux(struct sun4i_tcon *tcon,
 	int id, ret;
 
 	/* find TCON TOP platform device and TCON id */
-
+        printk("-- sun8i_r40_tcon_tv_set_mux()\n");
 	port = of_graph_get_port_by_id(tcon->dev->of_node, 0);
 	if (!port)
 		return -EINVAL;
@@ -1448,6 +1473,60 @@ static int sun8i_r40_tcon_tv_set_mux(struct sun4i_tcon *tcon,
 			put_device(&pdev->dev);
 			return ret;
 		}
+	}
+
+	return 0;
+}
+
+static int sun8i_h6_tcon_tv_set_mux(struct sun4i_tcon *tcon,
+				     const struct drm_encoder *encoder)
+{
+	struct device_node *port, *remote;
+	struct platform_device *pdev;
+	int id, ret;
+
+	/* find TCON TOP platform device and TCON id */
+        printk("-- sun8i_h6_tcon_tv_set_mux()\n");
+	port = of_graph_get_port_by_id(tcon->dev->of_node, 0);
+	if (!port)
+		return -EINVAL;
+
+	id = sun4i_tcon_of_get_id_from_port(port);
+	of_node_put(port);
+
+	remote = of_graph_get_remote_node(tcon->dev->of_node, 0, -1);
+	if (!remote)
+		return -EINVAL;
+
+	pdev = of_find_device_by_node(remote);
+	of_node_put(remote);
+	if (!pdev)
+		return -EINVAL;
+
+	if (IS_ENABLED(CONFIG_DRM_SUN8I_TCON_TOP) &&
+	    encoder->encoder_type == DRM_MODE_ENCODER_TMDS) {
+		ret = sun8i_tcon_top_set_hdmi_src(&pdev->dev, id);
+		if (ret) {
+			put_device(&pdev->dev);
+			return ret;
+		}
+	}
+
+	if (IS_ENABLED(CONFIG_DRM_SUN8I_TCON_TOP)) {
+
+                ret = sun8i_tcon_top_set_hdmi_src(&pdev->dev, id);
+                if (ret) {
+                        put_device(&pdev->dev);
+                        return ret;
+                }
+/*
+                printk(" -- 1 CONFIG_DRM_SUN8I_TCON_TOP de config tcon->id:%d id:%d\n", tcon->id, id);
+		ret = sun8i_tcon_top_de_config(&pdev->dev, tcon->id, id);
+		if (ret) {
+			put_device(&pdev->dev);
+			return ret;
+		}
+*/
 	}
 
 	return 0;
@@ -1542,6 +1621,13 @@ static const struct sun4i_tcon_quirks sun9i_a80_tcon_tv_quirks = {
 	.needs_edp_reset = true,
 };
 
+static const struct sun4i_tcon_quirks sun50i_h6_tcon_lcd_quirks = {
+        .has_channel_0          = true,
+        //.polarity_in_ch0        = true,
+	.dclk_min_div           = 4,
+        .set_mux                = sun8i_h6_tcon_tv_set_mux,
+};
+
 /* sun4i_drv uses this list to check if a device node is a TCON */
 const struct of_device_id sun4i_tcon_of_table[] = {
 	{ .compatible = "allwinner,sun4i-a10-tcon", .data = &sun4i_a10_quirks },
@@ -1559,6 +1645,7 @@ const struct of_device_id sun4i_tcon_of_table[] = {
 	{ .compatible = "allwinner,sun8i-v3s-tcon", .data = &sun8i_v3s_quirks },
 	{ .compatible = "allwinner,sun9i-a80-tcon-lcd", .data = &sun9i_a80_tcon_lcd_quirks },
 	{ .compatible = "allwinner,sun9i-a80-tcon-tv", .data = &sun9i_a80_tcon_tv_quirks },
+        { .compatible = "allwinner,sun50i-h6-tcon-tv", .data = &sun50i_h6_tcon_lcd_quirks },
 	{ }
 };
 MODULE_DEVICE_TABLE(of, sun4i_tcon_of_table);

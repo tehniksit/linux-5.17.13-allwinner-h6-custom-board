@@ -540,38 +540,39 @@ static int sun4i_tv_bind(struct device *dev, struct device *master,
 	struct sun4i_tv *tv;
 	void __iomem *regs;
 	int ret;
-
+        dev_err(dev, "--Inside sun4i_tv_bind()\n");
+        printk("--Inside sun4i_tv_bind()\n");
 	tv = devm_kzalloc(dev, sizeof(*tv), GFP_KERNEL);
 	if (!tv)
 		return -ENOMEM;
 	tv->drv = drv;
 	dev_set_drvdata(dev, tv);
-
+        printk("--1--\n");
 	regs = devm_platform_ioremap_resource(pdev, 0);
 	if (IS_ERR(regs)) {
 		dev_err(dev, "Couldn't map the TV encoder registers\n");
 		return PTR_ERR(regs);
 	}
-
+        printk("--2--\n");
 	tv->regs = devm_regmap_init_mmio(dev, regs,
 					 &sun4i_tv_regmap_config);
 	if (IS_ERR(tv->regs)) {
 		dev_err(dev, "Couldn't create the TV encoder regmap\n");
 		return PTR_ERR(tv->regs);
 	}
-
+        printk("--3--\n");
 	tv->reset = devm_reset_control_get(dev, NULL);
 	if (IS_ERR(tv->reset)) {
 		dev_err(dev, "Couldn't get our reset line\n");
 		return PTR_ERR(tv->reset);
 	}
-
+        printk("--4--\n");
 	ret = reset_control_deassert(tv->reset);
 	if (ret) {
 		dev_err(dev, "Couldn't deassert our reset line\n");
 		return ret;
 	}
-
+        printk("--5--\n");
 	tv->clk = devm_clk_get(dev, NULL);
 	if (IS_ERR(tv->clk)) {
 		dev_err(dev, "Couldn't get the TV encoder clock\n");
@@ -584,18 +585,19 @@ static int sun4i_tv_bind(struct device *dev, struct device *master,
 			       &sun4i_tv_helper_funcs);
 	ret = drm_simple_encoder_init(drm, &tv->encoder,
 				      DRM_MODE_ENCODER_TVDAC);
+        printk("--6--\n");
 	if (ret) {
 		dev_err(dev, "Couldn't initialise the TV encoder\n");
 		goto err_disable_clk;
 	}
-
+        printk("--7--\n");
 	tv->encoder.possible_crtcs = drm_of_find_possible_crtcs(drm,
 								dev->of_node);
 	if (!tv->encoder.possible_crtcs) {
 		ret = -EPROBE_DEFER;
 		goto err_disable_clk;
 	}
-
+        printk("--8--\n");
 	drm_connector_helper_add(&tv->connector,
 				 &sun4i_tv_comp_connector_helper_funcs);
 	ret = drm_connector_init(drm, &tv->connector,
@@ -609,7 +611,7 @@ static int sun4i_tv_bind(struct device *dev, struct device *master,
 	tv->connector.interlace_allowed = true;
 
 	drm_connector_attach_encoder(&tv->connector, &tv->encoder);
-
+        printk("--END--\n");
 	return 0;
 
 err_cleanup_connector:
@@ -638,6 +640,7 @@ static const struct component_ops sun4i_tv_ops = {
 
 static int sun4i_tv_probe(struct platform_device *pdev)
 {
+        printk("--Inside sun4i_tv_probe()\n");
 	return component_add(&pdev->dev, &sun4i_tv_ops);
 }
 

@@ -17,15 +17,15 @@ static int sun4i_de_atomic_check(struct drm_device *dev,
 				 struct drm_atomic_state *state)
 {
 	int ret;
-
+    printk(" --- Inside sun4i_de_atomic_check\n");
 	ret = drm_atomic_helper_check_modeset(dev, state);
 	if (ret)
 		return ret;
-
+        printk(" --- 1 Ok\n");
 	ret = drm_atomic_normalize_zpos(dev, state);
 	if (ret)
 		return ret;
-
+    printk(" --- sun4i_de_atomic_check Ok!\n");    
 	return drm_atomic_helper_check_planes(dev, state);
 }
 

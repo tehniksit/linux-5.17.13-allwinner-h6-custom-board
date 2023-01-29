@@ -262,13 +262,13 @@ static struct drm_plane **sun8i_layers_init(struct drm_device *drm,
 	struct drm_plane **planes;
 	struct sun8i_mixer *mixer = engine_to_sun8i_mixer(engine);
 	int i;
-
+        printk("--Inside sun8i_layers_init()\n");
 	planes = devm_kcalloc(drm->dev,
 			      mixer->cfg->vi_num + mixer->cfg->ui_num + 1,
 			      sizeof(*planes), GFP_KERNEL);
 	if (!planes)
 		return ERR_PTR(-ENOMEM);
-
+        printk("--1--\n");
 	for (i = 0; i < mixer->cfg->vi_num; i++) {
 		struct sun8i_vi_layer *layer;
 
@@ -281,7 +281,7 @@ static struct drm_plane **sun8i_layers_init(struct drm_device *drm,
 
 		planes[i] = &layer->plane;
 	}
-
+        printk("--2--\n");
 	for (i = 0; i < mixer->cfg->ui_num; i++) {
 		struct sun8i_ui_layer *layer;
 
@@ -294,7 +294,7 @@ static struct drm_plane **sun8i_layers_init(struct drm_device *drm,
 
 		planes[mixer->cfg->vi_num + i] = &layer->plane;
 	}
-
+        printk("--END--\n");
 	return planes;
 }
 
@@ -341,7 +341,8 @@ static int sun8i_mixer_bind(struct device *dev, struct device *master,
 	unsigned int base;
 	int plane_cnt;
 	int i, ret;
-
+        dev_err(dev, " -- Inside sun8i_mixer_bind()\n");
+        printk(" -- Inside sun8i_mixer_bind()\n");
 	/*
 	 * The mixer uses single 32-bit register to store memory
 	 * addresses, so that it cannot deal with 64-bit memory
@@ -354,14 +355,14 @@ static int sun8i_mixer_bind(struct device *dev, struct device *master,
 		dev_err(dev, "Cannot do 32-bit DMA.\n");
 		return ret;
 	}
-
+        printk("--1--\n");
 	mixer = devm_kzalloc(dev, sizeof(*mixer), GFP_KERNEL);
 	if (!mixer)
 		return -ENOMEM;
 	dev_set_drvdata(dev, mixer);
 	mixer->engine.ops = &sun8i_engine_ops;
 	mixer->engine.node = dev->of_node;
-
+        printk("--2--\n");
 	if (of_find_property(dev->of_node, "iommus", NULL)) {
 		/*
 		 * This assume we have the same DMA constraints for
@@ -374,7 +375,7 @@ static int sun8i_mixer_bind(struct device *dev, struct device *master,
 		if (ret)
 			return ret;
 	}
-
+        printk("--3--\n");
 	/*
 	 * While this function can fail, we shouldn't do anything
 	 * if this happens. Some early DE2 DT entries don't provide
@@ -384,34 +385,34 @@ static int sun8i_mixer_bind(struct device *dev, struct device *master,
 	 * id is needed, it will fail during id matching anyway.
 	 */
 	mixer->engine.id = sun8i_mixer_of_get_id(dev->of_node);
-
+        printk("-- mixer->engine.id:%d\n",mixer->engine.id);
 	mixer->cfg = of_device_get_match_data(dev);
 	if (!mixer->cfg)
 		return -EINVAL;
-
+        printk("--4--\n");
 	regs = devm_platform_ioremap_resource(pdev, 0);
 	if (IS_ERR(regs))
 		return PTR_ERR(regs);
-
+        printk("--5--\n");
 	mixer->engine.regs = devm_regmap_init_mmio(dev, regs,
 						   &sun8i_mixer_regmap_config);
 	if (IS_ERR(mixer->engine.regs)) {
 		dev_err(dev, "Couldn't create the mixer regmap\n");
 		return PTR_ERR(mixer->engine.regs);
 	}
-
+        printk("--6--\n");
 	mixer->reset = devm_reset_control_get(dev, NULL);
 	if (IS_ERR(mixer->reset)) {
 		dev_err(dev, "Couldn't get our reset line\n");
 		return PTR_ERR(mixer->reset);
 	}
-
+        printk("--7--\n");
 	ret = reset_control_deassert(mixer->reset);
 	if (ret) {
 		dev_err(dev, "Couldn't deassert our reset line\n");
 		return ret;
 	}
-
+        printk("--8--\n");
 	mixer->bus_clk = devm_clk_get(dev, "bus");
 	if (IS_ERR(mixer->bus_clk)) {
 		dev_err(dev, "Couldn't get the mixer bus clock\n");
@@ -419,14 +420,14 @@ static int sun8i_mixer_bind(struct device *dev, struct device *master,
 		goto err_assert_reset;
 	}
 	clk_prepare_enable(mixer->bus_clk);
-
+        printk("--9--\n");
 	mixer->mod_clk = devm_clk_get(dev, "mod");
 	if (IS_ERR(mixer->mod_clk)) {
 		dev_err(dev, "Couldn't get the mixer module clock\n");
 		ret = PTR_ERR(mixer->mod_clk);
 		goto err_disable_bus_clk;
 	}
-
+        printk("--10--\n");
 	/*
 	 * It seems that we need to enforce that rate for whatever
 	 * reason for the mixer to be functional. Make sure it's the
@@ -494,7 +495,7 @@ static int sun8i_mixer_bind(struct device *dev, struct device *master,
 
 	regmap_update_bits(mixer->engine.regs, SUN8I_MIXER_BLEND_PIPE_CTL(base),
 			   SUN8I_MIXER_BLEND_PIPE_CTL_EN_MSK, 0);
-
+        printk("--END--\n");
 	return 0;
 
 err_disable_bus_clk:

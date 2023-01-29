@@ -191,6 +191,11 @@ int sun4i_rgb_init(struct drm_device *drm, struct sun4i_tcon *tcon)
 	struct drm_encoder *encoder;
 	struct sun4i_rgb *rgb;
 	int ret;
+	dev_info(drm->dev, "-----------------------------\n");
+        dev_info(drm->dev, "-----------------------------\n\n");
+        dev_info(drm->dev, "Inside sun4i_rgb_init\n");
+        dev_info(drm->dev, "-----------------------------\n\n");
+        dev_info(drm->dev, "-----------------------------\n");
 
 	rgb = devm_kzalloc(drm->dev, sizeof(*rgb), GFP_KERNEL);
 	if (!rgb)
@@ -241,6 +246,7 @@ int sun4i_rgb_init(struct drm_device *drm, struct sun4i_tcon *tcon)
 	return 0;
 
 err_cleanup_connector:
+        printk(" err_cleanup_connector!\n");
 	drm_encoder_cleanup(&rgb->encoder);
 err_out:
 	return ret;

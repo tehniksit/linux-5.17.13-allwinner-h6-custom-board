@@ -243,31 +243,43 @@ int drm_of_find_panel_or_bridge(const struct device_node *np,
 {
 	int ret = -EPROBE_DEFER;
 	struct device_node *remote;
-
-	if (!panel && !bridge)
+	printk("Inside drm_of_find_panel_or_bridge()\n");
+	if (!panel && !bridge) {
+		printk("!panel && !bridge\n");
 		return -EINVAL;
-	if (panel)
+	}
+	if (panel) {
 		*panel = NULL;
+	}
 
+        printk(" -- np:%s parent:%s child:%s - port:%d endpoint:%d\n", &np->full_name[0], &np->parent->full_name[0], &np->child->full_name[0], port, endpoint);
 	/*
 	 * of_graph_get_remote_node() produces a noisy error message if port
 	 * node isn't found and the absence of the port is a legit case here,
 	 * so at first we silently check whether graph presents in the
 	 * device-tree node.
 	 */
-	if (!of_graph_is_present(np))
+	if (!of_graph_is_present(np)) {
+		printk(" -ENODEV !of_graph_is_present(np)\n");
 		return -ENODEV;
+	}
 
 	remote = of_graph_get_remote_node(np, port, endpoint);
-	if (!remote)
+	if (!remote) {
+		printk(" -ENODEV of_graph_get_remote_node\n");
 		return -ENODEV;
+	}
 
 	if (panel) {
+		printk("calling of_drm_find_panel()\n");
 		*panel = of_drm_find_panel(remote);
-		if (!IS_ERR(*panel))
+		if (!IS_ERR(*panel)) {
 			ret = 0;
-		else
+			printk("ret = 0;\n");
+		} else {
+			printk("*panel = NULL;\n");
 			*panel = NULL;
+		}
 	}
 
 	/* No panel found yet, check for a bridge next. */
@@ -283,6 +295,7 @@ int drm_of_find_panel_or_bridge(const struct device_node *np,
 	}
 
 	of_node_put(remote);
+	printk("ret = %d\n", ret);
 	return ret;
 }
 EXPORT_SYMBOL_GPL(drm_of_find_panel_or_bridge);
